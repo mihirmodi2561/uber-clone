@@ -21,7 +21,6 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSClusterPolicy" {
   role       = aws_iam_role.example.name
 }
 
-#get vpc data
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
@@ -29,9 +28,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-#get public subnets for cluster
-
-# Create a public subnet in us-east-1a
+# Create public and private subnets (ensure availability zones match your requirements)
 resource "aws_subnet" "public_subnet_a" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
@@ -41,7 +38,6 @@ resource "aws_subnet" "public_subnet_a" {
   }
 }
 
-# Create a private subnet in us-east-1a
 resource "aws_subnet" "private_subnet_a" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.2.0/24"
@@ -51,10 +47,10 @@ resource "aws_subnet" "private_subnet_a" {
   }
 }
 
-# Create the EKS cluster
 resource "aws_eks_cluster" "example" {
   name = "EKS_CLOUD"
   role_arn = aws_iam_role.example.arn
+
   vpc_config {
     subnet_ids = [
       aws_subnet.public_subnet_a.id,
@@ -62,8 +58,8 @@ resource "aws_eks_cluster" "example" {
     ]
   }
   depends_on = [
-      aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
-    ]
+    aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
+  ]
 }
 
 resource "aws_iam_role" "example1" {
@@ -101,11 +97,8 @@ resource "aws_eks_node_group" "example" {
   cluster_name    = aws_eks_cluster.example.name
   node_group_name = "Node-cloud"
   node_role_arn   = aws_iam_role.example1.arn
-  subnet_ids = [
-        aws_subnet.public_subnet_a.id,
-        aws_subnet.private_subnet_a.id,
-      ]
-  
+  subnet_ids      = aws_subnet.public_subnet_a.id
+
   scaling_config {
     desired_size = 1
     max_size     = 2
@@ -113,8 +106,6 @@ resource "aws_eks_node_group" "example" {
   }
   instance_types = ["t2.medium"]
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
-  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
     aws_iam_role_policy_attachment.example-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.example-AmazonEKS_CNI_Policy,
