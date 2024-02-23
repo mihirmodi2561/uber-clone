@@ -97,7 +97,10 @@ resource "aws_eks_node_group" "example" {
   cluster_name    = aws_eks_cluster.example.name
   node_group_name = "Node-cloud"
   node_role_arn   = aws_iam_role.example1.arn
-  subnet_ids      = aws_subnet.public_subnet_a.id
+  subnet_ids = [
+      aws_subnet.public_subnet_a.id,
+      aws_subnet.private_subnet_a.id,
+    ]
 
   scaling_config {
     desired_size = 1
