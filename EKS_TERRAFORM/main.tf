@@ -41,6 +41,16 @@ resource "aws_subnet" "public_subnet_a" {
   }
 }
 
+# Create a private subnet in us-east-1a
+resource "aws_subnet" "private_subnet_a" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "us-east-1a"
+  tags = {
+    Name = "private-subnet-a"
+  }
+}
+
 # Create the EKS cluster
 resource "aws_eks_cluster" "example" {
   name = "EKS_CLOUD"
@@ -48,6 +58,7 @@ resource "aws_eks_cluster" "example" {
   vpc_config {
     subnet_ids = [
       aws_subnet.public_subnet_a.id,
+      aws_subnet.private_subnet_a.id,
     ]
   }
   depends_on = [
@@ -92,6 +103,7 @@ resource "aws_eks_node_group" "example" {
   node_role_arn   = aws_iam_role.example1.arn
   subnet_ids = [
         aws_subnet.public_subnet_a.id,
+        aws_subnet.private_subnet_a.id,
       ]
   
   scaling_config {
