@@ -56,7 +56,7 @@ resource "aws_eks_cluster" "example" {
 }
 
 #cluster provision
-resource "aws_eks_cluster" "example" {
+resource "aws_eks_cluster" "example1" {
   name     = "EKS_CLOUD"
   role_arn = aws_iam_role.example.arn
 
