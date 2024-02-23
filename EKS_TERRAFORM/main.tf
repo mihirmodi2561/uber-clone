@@ -28,6 +28,7 @@ data "aws_vpc" "default" {
 #get public subnets for cluster
 data "aws_subnets" "public" {
   filter {
+    availability_zone = "us-east-1a"
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
   }
